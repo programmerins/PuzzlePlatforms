@@ -8,12 +8,14 @@
 
 
 class UBoxComponent;
+class UStaticMeshComponent;
+class AMovingPlatform;
 
 
 UCLASS()
 class PUZZLEPLATFORMS_API APlatformTrigger : public AActor
 {
-	GENERATED_BODY()
+	GENERATED_BODY()	
 	
 
 public:	
@@ -22,12 +24,31 @@ public:
 
 
 protected:
+	UPROPERTY(VisibleDefaultsOnly, Category = "Components")
 	UBoxComponent* TriggerVolume;
 
+	UPROPERTY(VisibleDefaultsOnly, Category = "Components")
+	UStaticMeshComponent* StaticMeshComp;
+
+	UPROPERTY(EditAnywhere)
+	TArray<AMovingPlatform*> PlatformsToTrigger;
+
+	float EmissiveAlpha = 0;
+
+	float TargetEmissiveAlpha = -1;
+	
 
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
+
+	void SetPressurePadEmissiveColor(bool bFlag);
+
+	UFUNCTION()
+	void OnBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+	
+	UFUNCTION()
+	void OnEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
 
 public:	
