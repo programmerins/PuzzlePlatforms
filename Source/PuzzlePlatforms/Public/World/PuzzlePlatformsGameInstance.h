@@ -4,21 +4,39 @@
 
 #include "CoreMinimal.h"
 #include "Engine/GameInstance.h"
+#include "MainMenuInterface.h"
 #include "PuzzlePlatformsGameInstance.generated.h"
+
+
+class UMainMenu;
+
 
 /**
  * 
  */
 UCLASS()
-class PUZZLEPLATFORMS_API UPuzzlePlatformsGameInstance : public UGameInstance
+class PUZZLEPLATFORMS_API UPuzzlePlatformsGameInstance final : public UGameInstance, public IMainMenuInterface
 {
 	GENERATED_BODY()
 
 
 public:
+	UPuzzlePlatformsGameInstance(const FObjectInitializer& ObjectInitializer);
+
+	UFUNCTION(BlueprintCallable)
+	void LoadMenu();
+
 	UFUNCTION(Exec)
-	void Host();
+	virtual void Host() override; // implemented interface abstact function
 
 	UFUNCTION(Exec)
 	void Join(const FString& IPAddress);
+
+
+private:
+	TSubclassOf<UUserWidget> MainMenuClass;
+
+
+private:
+	virtual void Init() override;
 };
