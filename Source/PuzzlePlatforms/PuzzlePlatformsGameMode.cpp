@@ -7,7 +7,7 @@
 APuzzlePlatformsGameMode::APuzzlePlatformsGameMode()
 {
 	// set default pawn class to our Blueprinted character
-	static ConstructorHelpers::FClassFinder<APawn> PlayerPawnBPClass(TEXT("/Game/Blueprints/Character/BP_PlayerPawn"));
+	static ConstructorHelpers::FClassFinder<APawn> PlayerPawnBPClass(TEXT("/Game/PuzlePlatforms/Blueprints/Character/BP_PlayerPawn"));
 
 	if (PlayerPawnBPClass.Class != NULL)
 	{

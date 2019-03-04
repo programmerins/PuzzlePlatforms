@@ -26,15 +26,20 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void LoadMenu();
 
-	UFUNCTION(Exec)
-	virtual void Host() override; // implemented interface abstact function
+	UFUNCTION(BlueprintCallable)
+	void LoadInGameMenu();
 
 	UFUNCTION(Exec)
-	void Join(const FString& IPAddress);
+	virtual void Host() override; /// implemented interface abstact function
+
+	UFUNCTION(Exec)
+	virtual void Join(const FString& IPAddress) override; /// implemented interface abstact function
 
 
 private:
 	TSubclassOf<UUserWidget> MainMenuClass;
+
+	TSubclassOf<UUserWidget> InGameMenuClass;
 
 
 private:

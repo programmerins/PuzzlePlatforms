@@ -5,6 +5,7 @@
 
 #include "Components/Button.h"
 #include "Components/WidgetSwitcher.h"
+#include "Components/EditableTextBox.h"
 
 
 bool UMainMenu::Initialize()
@@ -18,6 +19,9 @@ bool UMainMenu::Initialize()
 	if (!ensure(JoinButton)) { return false; }
 	JoinButton->OnClicked.AddDynamic(this, &UMainMenu::OpenJoinMenu);
 
+	if (!ensure(ConfirmJoinMenuButton)) { return false; }
+	ConfirmJoinMenuButton->OnClicked.AddDynamic(this, &UMainMenu::JoinServer);
+
 	if (!ensure(CancelJoinMenuButton)) { return false; }
 	CancelJoinMenuButton->OnClicked.AddDynamic(this, &UMainMenu::OpenMainMenu);
 
@@ -27,9 +31,21 @@ bool UMainMenu::Initialize()
 
 void UMainMenu::HostServer()
 {
-	if (MainMenuInterface)
+	if (IsVaildInterface())
 	{
-		MainMenuInterface->Host();
+		GetInterface()->Host();
+	}
+}
+
+
+void UMainMenu::JoinServer()
+{
+	if (IsVaildInterface())
+	{
+		if (!ensure(IPAddressField)) return;
+
+		const FString& Address = IPAddressField->GetText().ToString();
+		GetInterface()->Join(Address);
 	}
 }
 
@@ -49,47 +65,4 @@ void UMainMenu::OpenMainMenu()
 	if (!ensure(MainMenu)) return;
 
 	MenuSwitcher->SetActiveWidget(MainMenu);
-}
-
-
-void UMainMenu::SetMainMenuInterface(IMainMenuInterface* MainMenuInterface)
-{
-	this->MainMenuInterface = MainMenuInterface;
-}
-
-
-void UMainMenu::Setup()
-{
-	AddToViewport();
-
-	UWorld* World = GetWorld();
-	if (!ensure(World)) return;
-
-	APlayerController* PlayerController = World->GetFirstPlayerController();
-	if (!ensure(PlayerController)) return;
-
-	FInputModeUIOnly InputModeData;
-	InputModeData.SetWidgetToFocus(TakeWidget());
-	InputModeData.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
-
-	PlayerController->SetInputMode(InputModeData);
-	PlayerController->bShowMouseCursor = true;
-}
-
-
-void UMainMenu::OnLevelRemovedFromWorld(ULevel* InLevel, UWorld* InWorld)
-{
-	Super::OnLevelRemovedFromWorld(InLevel, InWorld);
-
-	RemoveFromViewport();
-
-	UWorld* World = GetWorld();
-	if (!ensure(World)) return;
-
-	APlayerController* PlayerController = World->GetFirstPlayerController();
-	if (!ensure(PlayerController)) return;
-
-	FInputModeGameOnly InputModeData;
-	PlayerController->SetInputMode(InputModeData);
-	PlayerController->bShowMouseCursor = false;
 }

@@ -7,15 +7,20 @@
 #include "UObject/ConstructorHelpers.h"
 #include "PlatformTrigger.h"
 #include "Blueprint/UserWidget.h"
+#include "InGameMenu.h"
 #include "MainMenu.h"
+#include "BaseMenuWidget.h"
 
 
 UPuzzlePlatformsGameInstance::UPuzzlePlatformsGameInstance(const FObjectInitializer& ObjectInitializer)
 {
-	static ConstructorHelpers::FClassFinder<UUserWidget> MainMenuBPClass(TEXT("/Game/UI/WBP_MainMenu"));
+	static ConstructorHelpers::FClassFinder<UUserWidget> MainMenuBPClass(TEXT("/Game/PuzlePlatforms/UI/WBP_MainMenu"));
 	if (!ensure(MainMenuBPClass.Class)) return;
-
 	MainMenuClass = MainMenuBPClass.Class;
+
+	static ConstructorHelpers::FClassFinder<UUserWidget> InGameMenuBPClass(TEXT("/Game/PuzlePlatforms/UI/WBP_InGameMenu"));
+	if (!ensure(InGameMenuBPClass.Class)) return;
+	InGameMenuClass = InGameMenuBPClass.Class;
 }
 
 
@@ -31,7 +36,18 @@ void UPuzzlePlatformsGameInstance::LoadMenu()
 	if (MainMenu)
 	{
 		MainMenu->Setup();
-		MainMenu->SetMainMenuInterface(this);
+		MainMenu->SetInterFace(this);
+	}
+}
+
+
+void UPuzzlePlatformsGameInstance::LoadInGameMenu()
+{
+	UBaseMenuWidget* InGameMenu = CreateWidget<UBaseMenuWidget>(this, InGameMenuClass);
+	if (InGameMenu)
+	{
+		InGameMenu->Setup();
+		InGameMenu->SetInterFace(this);
 	}
 }
 
@@ -46,7 +62,7 @@ void UPuzzlePlatformsGameInstance::Host()
 	UWorld* World = GetWorld();
 	if (!ensure(World)) return;
 
-	World->ServerTravel("/Game/Maps/Stage?listen");
+	World->ServerTravel("/Game/PuzlePlatforms/Maps/Stage?listen");
 }
 
 
