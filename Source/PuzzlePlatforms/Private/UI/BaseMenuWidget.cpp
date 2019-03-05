@@ -28,6 +28,23 @@ void UBaseMenuWidget::Setup()
 }
 
 
+void UBaseMenuWidget::Teardown()
+{
+	this->RemoveFromViewport();
+
+	UWorld* World = GetWorld();
+	if (!ensure(World != nullptr)) return;
+
+	APlayerController* PlayerController = World->GetFirstPlayerController();
+	if (!ensure(PlayerController != nullptr)) return;
+
+	FInputModeGameOnly InputModeData;
+	PlayerController->SetInputMode(InputModeData);
+
+	PlayerController->bShowMouseCursor = false;
+}
+
+
 void UBaseMenuWidget::OnLevelRemovedFromWorld(ULevel* InLevel, UWorld* InWorld)
 {
 	Super::OnLevelRemovedFromWorld(InLevel, InWorld);

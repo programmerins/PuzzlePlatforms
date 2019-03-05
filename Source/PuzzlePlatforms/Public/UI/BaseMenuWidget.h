@@ -23,6 +23,8 @@ private:
 public:
 	void Setup();
 
+	void Teardown();
+
 	void SetInterFace(IMainMenuInterface* MainMenuInterface);
 
 	FORCEINLINE bool IsVaildInterface() const { return MainMenuInterface != nullptr; }

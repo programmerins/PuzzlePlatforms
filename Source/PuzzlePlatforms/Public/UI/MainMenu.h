@@ -16,7 +16,7 @@ class UEditableTextBox;
  * 
  */
 UCLASS()
-class PUZZLEPLATFORMS_API UMainMenu : public UBaseMenuWidget
+class PUZZLEPLATFORMS_API UMainMenu final : public UBaseMenuWidget
 {
 	GENERATED_BODY()
 
@@ -27,6 +27,9 @@ private:
 
 	UPROPERTY(meta = (BindWidget))
 	UButton* JoinButton;
+
+	UPROPERTY(meta = (BindWidget))
+	UButton* QuitButton;
 
 	UPROPERTY(meta = (BindWidget))
 	UButton* CancelJoinMenuButton;
@@ -61,4 +64,7 @@ private:
 
 	UFUNCTION()
 	void OpenMainMenu();
+
+	UFUNCTION()
+	void QuitPressed();
 };

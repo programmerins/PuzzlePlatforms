@@ -4,10 +4,12 @@
 
 
 #include "Engine/Engine.h"
-#include "UObject/ConstructorHelpers.h"
-#include "PlatformTrigger.h"
 #include "Blueprint/UserWidget.h"
-#include "InGameMenu.h"
+#include "UObject/ConstructorHelpers.h"
+#include "OnlineSessionSettings.h"
+#include "OnlineSessionInterface.h"
+
+#include "PlatformTrigger.h"
 #include "MainMenu.h"
 #include "BaseMenuWidget.h"
 
@@ -26,7 +28,19 @@ UPuzzlePlatformsGameInstance::UPuzzlePlatformsGameInstance(const FObjectInitiali
 
 void UPuzzlePlatformsGameInstance::Init()
 {
-	UE_LOG(LogTemp, Log, TEXT("Found Class: %s"), *MainMenuClass->GetName());
+	UE_LOG(LogTemp, Log, TEXT("Found Class: %s"), *MainMenuClass->GetName())
+
+	auto OSS = IOnlineSubsystem::Get();
+	if (OSS)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Found OSS: %s"), *OSS->GetSubsystemName().ToString())
+
+		SessionInterface = OSS->GetSessionInterface();
+		if (SessionInterface.IsValid())
+		{
+			SessionInterface->OnCreateSessionCompleteDelegates.AddUObject(this, &UPuzzlePlatformsGameInstance::OnCreateSessionComplete);
+		}
+	}
 }
 
 
@@ -52,8 +66,14 @@ void UPuzzlePlatformsGameInstance::LoadInGameMenu()
 }
 
 
-void UPuzzlePlatformsGameInstance::Host()
+void UPuzzlePlatformsGameInstance::OnCreateSessionComplete(FName SessionName, bool Success)
 {
+	if (!Success)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Could not create session"))
+		return;
+	}
+
 	UEngine* Engine = GetEngine();
 	if (!ensure(Engine)) return;
 
@@ -63,6 +83,16 @@ void UPuzzlePlatformsGameInstance::Host()
 	if (!ensure(World)) return;
 
 	World->ServerTravel("/Game/PuzlePlatforms/Maps/Stage?listen");
+}
+
+
+void UPuzzlePlatformsGameInstance::Host()
+{
+	if (SessionInterface.IsValid())
+	{
+		FOnlineSessionSettings SessionSettings;
+		SessionInterface->CreateSession(0, TEXT("My session game"), SessionSettings);
+	}
 }
 
 
@@ -77,5 +107,15 @@ void UPuzzlePlatformsGameInstance::Join(const FString& IPAddress)
 	if (PC)
 	{
 		PC->ClientTravel(IPAddress, ETravelType::TRAVEL_Absolute);
+	}
+}
+
+
+void UPuzzlePlatformsGameInstance::LoadMainMenu()
+{
+	APlayerController* PC = GetFirstLocalPlayerController();
+	if (PC)
+	{
+		PC->ClientTravel("/Game/PuzlePlatforms/Maps/MainMenu", ETravelType::TRAVEL_Absolute);
 	}
 }
