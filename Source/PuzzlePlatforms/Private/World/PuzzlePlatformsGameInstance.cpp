@@ -13,7 +13,8 @@
 #include "BaseMenuWidget.h"
 
 
-const static FName SESSION_NAME = TEXT("My Session Game");
+const static FName SESSION_NAME = TEXT("GameSession");
+const static FName SERVER_NAME_SETTINGS_KEY = TEXT("ServerName");
 
 
 UPuzzlePlatformsGameInstance::UPuzzlePlatformsGameInstance(const FObjectInitializer& ObjectInitializer)
@@ -55,10 +56,11 @@ void UPuzzlePlatformsGameInstance::CreateSession()
 	{
 		FOnlineSessionSettings SessionSettings;
 
-		SessionSettings.NumPublicConnections = 2;
+		SessionSettings.NumPublicConnections = 5;
 		SessionSettings.bIsLANMatch = IOnlineSubsystem::Get()->GetSubsystemName().IsEqual("NULL") ? true : false;
 		SessionSettings.bShouldAdvertise = true;
 		SessionSettings.bUsesPresence = true;
+		SessionSettings.Set(SERVER_NAME_SETTINGS_KEY, DesiredServerName, EOnlineDataAdvertisementType::ViaOnlineServiceAndPing);
 
 		SessionInterface->CreateSession(0, SESSION_NAME, SessionSettings);
 	}
@@ -87,8 +89,10 @@ void UPuzzlePlatformsGameInstance::LoadInGameMenu()
 }
 
 
-void UPuzzlePlatformsGameInstance::Host()
+void UPuzzlePlatformsGameInstance::Host(FString ServerName)
 {
+	DesiredServerName = ServerName;
+
 	if (SessionInterface.IsValid())
 	{
 		FNamedOnlineSession* ExistingSession = SessionInterface->GetNamedSession(SESSION_NAME);
@@ -139,12 +143,21 @@ void UPuzzlePlatformsGameInstance::RefreshServerList()
 }
 
 
+void UPuzzlePlatformsGameInstance::StartSession()
+{
+	if (SessionInterface.IsValid())
+	{
+		SessionInterface->StartSession(SESSION_NAME);
+	}
+}
+
+
 void UPuzzlePlatformsGameInstance::OnCreateSessionComplete(FName SessionName, bool Success)
 {
 	if (!Success)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Could not create session"))
-			return;
+		return;
 	}
 
 	UEngine* Engine = GetEngine();
@@ -155,7 +168,7 @@ void UPuzzlePlatformsGameInstance::OnCreateSessionComplete(FName SessionName, bo
 	UWorld* World = GetWorld();
 	if (!ensure(World)) return;
 
-	World->ServerTravel("/Game/PuzzlePlatforms/Maps/Stage?listen");
+	World->ServerTravel("/Game/PuzzlePlatforms/Maps/Lobby?listen");
 }
 
 
@@ -181,10 +194,19 @@ void UPuzzlePlatformsGameInstance::OnFindSessionComplete(bool Success)
 		for (const FOnlineSessionSearchResult& SearchResult : SessionSearch->SearchResults)
 		{
 			FServerData Data;
-			Data.Name = SearchResult.GetSessionIdStr();
-			Data.CurrentPlayers = SearchResult.Session.NumOpenPublicConnections;
 			Data.MaxPlayers = SearchResult.Session.SessionSettings.NumPublicConnections;
+			Data.CurrentPlayers = Data.MaxPlayers - SearchResult.Session.NumOpenPublicConnections;
 			Data.HostUserName = SearchResult.Session.OwningUserName;
+
+			FString ServerNameRes;
+			if (SearchResult.Session.SessionSettings.Get(SERVER_NAME_SETTINGS_KEY, OUT ServerNameRes))
+			{
+				Data.Name = ServerNameRes;
+			}
+			else
+			{
+				Data.Name = "Invalid session name";
+			}
 
 			ServerNames.Add(Data);
 		}

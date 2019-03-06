@@ -71,16 +71,28 @@ private:
 	UWidgetSwitcher* MenuSwitcher;
 
 	UPROPERTY(meta = (BindWidget))
+	UWidget* MainMenu;
+
+	UPROPERTY(meta = (BindWidget))
 	UWidget* JoinMenu;
 
 	UPROPERTY(meta = (BindWidget))
-	UWidget* MainMenu;
+	UWidget* HostMenu;
 
 	UPROPERTY (meta = (BindWidget))
 	UWidget* FindSesionIcon;
 
 	UPROPERTY(meta = (BindWidget))
 	UPanelWidget* ServerList;
+
+	UPROPERTY(meta = (BindWidget))
+	UEditableTextBox* ServerHostName;
+
+	UPROPERTY(meta = (BindWidget))
+	UButton* ConfirmHostMenuButton;
+
+	UPROPERTY(meta = (BindWidget))
+	UButton* CancelHostMenuButton;
 
 
 private:
@@ -89,17 +101,23 @@ private:
 	void UpdateChildren();
 
 	UFUNCTION()
-	void HostServer();
+	void OnPressedConfirmHostMenuButton();
 
 	UFUNCTION()
-	void JoinServer();
+	void OnPressedCancelHostMenuButton();
 
 	UFUNCTION()
-	void OpenJoinMenu();
+	void OnPressedConfirmJoinMenuButton();
 
 	UFUNCTION()
-	void OpenMainMenu();
+	void OnPressedCancelJoinMenuButton();
 
 	UFUNCTION()
-	void QuitPressed();
+	void OnPressedHostMenuButton();
+
+	UFUNCTION()
+	void OnPressedJoinMenuButton();
+
+	UFUNCTION()
+	void OnPressedQuitButton();
 };

@@ -23,37 +23,63 @@ UMainMenu::UMainMenu(const FObjectInitializer& ObjectInitializer)
 bool UMainMenu::Initialize()
 {
 	bool Success = Super::Initialize();
-	if (!Success) { return false; }
+	if (!ensure(Success)) return false;
 
-	if (!ensure(HostButton)) { return false; }
-	HostButton->OnClicked.AddDynamic(this, &UMainMenu::HostServer);
+	/* Bind to Host Button (Main Menu)*/
+	if (!ensure(HostButton)) {	return false; }
+	HostButton->OnClicked.AddDynamic(this, &UMainMenu::OnPressedHostMenuButton);
 
+	/* Bind to Join Button (Main Menu) */
 	if (!ensure(JoinButton)) { return false; }
-	JoinButton->OnClicked.AddDynamic(this, &UMainMenu::OpenJoinMenu);
+	JoinButton->OnClicked.AddDynamic(this, &UMainMenu::OnPressedJoinMenuButton);
 
-	if (!ensure(QuitButton)) { return false; }
-	QuitButton->OnClicked.AddDynamic(this, &UMainMenu::QuitPressed);
-
+	/* Bind to Join Button (Join Menu) */
 	if (!ensure(ConfirmJoinMenuButton)) { return false; }
-	ConfirmJoinMenuButton->OnClicked.AddDynamic(this, &UMainMenu::JoinServer);
-
+	ConfirmJoinMenuButton->OnClicked.AddDynamic(this, &UMainMenu::OnPressedConfirmJoinMenuButton);
+	
+	/* Bind to Cancel button (Join Menu) */
 	if (!ensure(CancelJoinMenuButton)) { return false; }
-	CancelJoinMenuButton->OnClicked.AddDynamic(this, &UMainMenu::OpenMainMenu);
+	CancelJoinMenuButton->OnClicked.AddDynamic(this, &UMainMenu::OnPressedCancelJoinMenuButton);
+
+	/* Bind to Host Button (Host Menu) */
+	if (!ensure(ConfirmHostMenuButton)) { return false; }
+	ConfirmHostMenuButton->OnClicked.AddDynamic(this, &UMainMenu::OnPressedConfirmHostMenuButton);
+
+	/* Bind to Host Button (Host Menu) */
+	if (!ensure(CancelHostMenuButton)) { return false; }
+	CancelHostMenuButton->OnClicked.AddDynamic(this, &UMainMenu::OnPressedCancelHostMenuButton);
+
+	/* Bind to Game Quit Button */
+	if (!ensure(QuitButton)) { return false; }
+	QuitButton->OnClicked.AddDynamic(this, &UMainMenu::OnPressedQuitButton);
+
+	//if (!ensure(ConfirmHostMenuButton)) { return false; }
+	//CancelHostMenuButton->OnClicked.AddDynamic(this, &UMainMenu::HostServer);
 
 	return true;
 }
 
 
-void UMainMenu::HostServer()
+void UMainMenu::OnPressedConfirmHostMenuButton()
 {
 	if (IsVaildInterface())
 	{
-		GetInterface()->Host();
+		FString ServerName = ServerHostName->Text.ToString();
+		GetInterface()->Host(ServerName);
 	}
 }
 
 
-void UMainMenu::JoinServer()
+void UMainMenu::OnPressedCancelHostMenuButton()
+{
+	if (!ensure(MenuSwitcher)) return;
+	if (!ensure(MainMenu)) return;
+
+	MenuSwitcher->SetActiveWidget(MainMenu);
+}
+
+
+void UMainMenu::OnPressedConfirmJoinMenuButton()
 {
 	if (SelectedIndex.IsSet() && IsVaildInterface())
 	{
@@ -67,7 +93,25 @@ void UMainMenu::JoinServer()
 }
 
 
-void UMainMenu::OpenJoinMenu()
+void UMainMenu::OnPressedCancelJoinMenuButton()
+{
+	if (!ensure(MenuSwitcher)) return;
+	if (!ensure(MainMenu)) return;
+
+	MenuSwitcher->SetActiveWidget(MainMenu);
+}
+
+
+void UMainMenu::OnPressedHostMenuButton()
+{
+	if (!ensure(MenuSwitcher)) return;
+	if (!ensure(MainMenu)) return;
+
+	MenuSwitcher->SetActiveWidget(HostMenu);
+}
+
+
+void UMainMenu::OnPressedJoinMenuButton()
 {	
 	if (!ensure(MenuSwitcher)) return;
 	if (!ensure(JoinMenu)) return;
@@ -80,16 +124,7 @@ void UMainMenu::OpenJoinMenu()
 }
 
 
-void UMainMenu::OpenMainMenu()
-{
-	if (!ensure(MenuSwitcher)) return;
-	if (!ensure(MainMenu)) return;
-
-	MenuSwitcher->SetActiveWidget(MainMenu);
-}
-
-
-void UMainMenu::QuitPressed()
+void UMainMenu::OnPressedQuitButton()
 {
 	UWorld* World = GetWorld();
 	if (!ensure(World != nullptr)) return;
@@ -115,7 +150,7 @@ void UMainMenu::SetServerList(TArray<FServerData> ServerDatas)
 
 		RowText->ServerName->SetText(FText::FromString(ServerData.Name));
 		RowText->HostUser->SetText(FText::FromString(ServerData.HostUserName));
-		RowText->HostUser->SetText(FText::FromString(FString::Printf(TEXT("%d/%d"), ServerData.CurrentPlayers, ServerData.MaxPlayers)));
+		RowText->ConnectionFraction->SetText(FText::FromString(FString::Printf(TEXT("%d/%d"), ServerData.CurrentPlayers, ServerData.MaxPlayers)));
 		RowText->Setup(this, i++);
 
 		ServerList->AddChild(RowText);

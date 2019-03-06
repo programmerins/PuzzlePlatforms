@@ -33,17 +33,21 @@ public:
 	void LoadInGameMenu();
 
 	UFUNCTION(Exec)
-	virtual void Host() override; /// implemented interface abstact function
+	void Host(FString ServerName) override; /// implemented interface abstact function
 
 	UFUNCTION(Exec)
-	virtual void Join(uint32 Index) override; /// implemented interface abstact function
+	void Join(uint32 Index) override; /// implemented interface abstact function
 
-	virtual void LoadMainMenu() override;
+	void LoadMainMenu() override;
 
-	virtual void RefreshServerList() override;
+	void RefreshServerList() override;
+
+	void StartSession();
 
 
 private:
+	FString DesiredServerName;
+
 	UMainMenu* MainMenu;
 
 	TSubclassOf<UUserWidget> MainMenuClass;
