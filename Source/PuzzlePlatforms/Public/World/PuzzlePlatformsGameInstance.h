@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "Engine/GameInstance.h"
 #include "OnlineSubsystem.h"
+#include "OnlineSessionInterface.h"
 
 #include "MainMenuInterface.h"
 #include "PuzzlePlatformsGameInstance.generated.h"
@@ -35,23 +36,35 @@ public:
 	virtual void Host() override; /// implemented interface abstact function
 
 	UFUNCTION(Exec)
-	virtual void Join(const FString& IPAddress) override; /// implemented interface abstact function
+	virtual void Join(uint32 Index) override; /// implemented interface abstact function
 
-	UFUNCTION()
 	virtual void LoadMainMenu() override;
+
+	virtual void RefreshServerList() override;
 
 
 private:
+	UMainMenu* MainMenu;
+
 	TSubclassOf<UUserWidget> MainMenuClass;
 
 	TSubclassOf<UUserWidget> InGameMenuClass;
+
+	IOnlineSessionPtr SessionInterface;
+
+	TSharedPtr<class FOnlineSessionSearch> SessionSearch;
 
 
 private:
 	virtual void Init() override;
 
-	UFUNCTION()
+	void CreateSession();
+
 	void OnCreateSessionComplete(FName SessionName, bool Success);
 
-	IOnlineSessionPtr SessionInterface;
+	void OnDestroySessionComplete(FName SessionName, bool Success);
+
+	void OnFindSessionComplete(bool Success);
+
+	void OnJoinSessionComplete(FName SessionName, EOnJoinSessionCompleteResult::Type Result);
 };

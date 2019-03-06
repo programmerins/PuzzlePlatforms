@@ -6,6 +6,18 @@
 #include "Components/Button.h"
 #include "Components/WidgetSwitcher.h"
 #include "Components/EditableTextBox.h"
+#include "Components/TextBlock.h"
+#include "UObject/ConstructorHelpers.h"
+#include "ServerRow.h"
+
+
+UMainMenu::UMainMenu(const FObjectInitializer& ObjectInitializer)
+{
+	static ConstructorHelpers::FClassFinder<UUserWidget> ServerRowBPClass(TEXT("/Game/PuzzlePlatforms/UI/WBP_ServerRow"));
+	if (!ensure(ServerRowBPClass.Class)) return;
+
+	ServerRowClass = ServerRowBPClass.Class;
+}
 
 
 bool UMainMenu::Initialize()
@@ -43,12 +55,14 @@ void UMainMenu::HostServer()
 
 void UMainMenu::JoinServer()
 {
-	if (IsVaildInterface())
+	if (SelectedIndex.IsSet() && IsVaildInterface())
 	{
-		if (!ensure(IPAddressField)) return;
-
-		const FString& Address = IPAddressField->GetText().ToString();
-		GetInterface()->Join(Address);
+		UE_LOG(LogTemp, Warning, TEXT("Selected Index: %d"), SelectedIndex.GetValue())
+		GetInterface()->Join(SelectedIndex.GetValue());
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Not index selected"))
 	}
 }
 
@@ -58,7 +72,11 @@ void UMainMenu::OpenJoinMenu()
 	if (!ensure(MenuSwitcher)) return;
 	if (!ensure(JoinMenu)) return;
 
+	GetInterface()->RefreshServerList();
+
+	ServerList->ClearChildren();
 	MenuSwitcher->SetActiveWidget(JoinMenu);
+	SetVisibilityFindSessionIcon(ESlateVisibility::Visible);
 }
 
 
@@ -80,4 +98,53 @@ void UMainMenu::QuitPressed()
 	if (!ensure(PC != nullptr)) return;
 
 	PC->ConsoleCommand("quit");
+}
+
+
+void UMainMenu::SetServerList(TArray<FServerData> ServerDatas)
+{
+	UWorld* World = this->GetWorld();
+	if (!ensure(World)) return;
+
+	uint32 i = 0;
+
+	for (const FServerData& ServerData : ServerDatas)
+	{
+		UServerRow* RowText = CreateWidget<UServerRow>(World, ServerRowClass);
+		if (!ensure(RowText)) return;
+
+		RowText->ServerName->SetText(FText::FromString(ServerData.Name));
+		RowText->HostUser->SetText(FText::FromString(ServerData.HostUserName));
+		RowText->HostUser->SetText(FText::FromString(FString::Printf(TEXT("%d/%d"), ServerData.CurrentPlayers, ServerData.MaxPlayers)));
+		RowText->Setup(this, i++);
+
+		ServerList->AddChild(RowText);
+	}
+}
+
+
+void UMainMenu::SetVisibilityFindSessionIcon(ESlateVisibility&& NewSlateVisibility)
+{
+	FindSesionIcon->SetVisibility(NewSlateVisibility);
+}
+
+
+void UMainMenu::SelectIndex(uint32 Index)
+{
+	SelectedIndex = Index;
+	UpdateChildren();
+}
+
+
+void UMainMenu::UpdateChildren()
+{
+	for (int32 i = 0; i < ServerList->GetChildrenCount(); ++i)
+	{
+		auto Row = Cast<UServerRow>(ServerList->GetChildAt(i));
+
+		if (Row)
+		{
+			Row->Selected = (SelectedIndex.IsSet() && SelectedIndex.GetValue() == i);
+		}
+	}
 }

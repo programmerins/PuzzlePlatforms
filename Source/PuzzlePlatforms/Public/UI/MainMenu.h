@@ -10,6 +10,22 @@
 class UButton;
 class UWidgetSwitcher;
 class UEditableTextBox;
+class UPanelWidget;
+
+
+USTRUCT()
+struct FServerData
+{
+	GENERATED_BODY()
+
+	FString Name;
+
+	uint16 CurrentPlayers;
+
+	uint16 MaxPlayers;
+
+	FString HostUserName;
+};
 
 
 /**
@@ -21,7 +37,21 @@ class PUZZLEPLATFORMS_API UMainMenu final : public UBaseMenuWidget
 	GENERATED_BODY()
 
 
+public:
+	UMainMenu(const FObjectInitializer& ObjectInitializer);
+
+	void SetServerList(TArray<FServerData> ServerDatas);
+
+	void SetVisibilityFindSessionIcon(ESlateVisibility&& NewSlateVisibility);
+
+	void SelectIndex(uint32 Index);
+
+
 private:
+	TSubclassOf<UUserWidget> ServerRowClass;
+
+	TOptional<uint32> SelectedIndex;
+
 	UPROPERTY(meta = (BindWidget))
 	UButton* HostButton;
 
@@ -46,12 +76,17 @@ private:
 	UPROPERTY(meta = (BindWidget))
 	UWidget* MainMenu;
 
+	UPROPERTY (meta = (BindWidget))
+	UWidget* FindSesionIcon;
+
 	UPROPERTY(meta = (BindWidget))
-	UEditableTextBox* IPAddressField;
+	UPanelWidget* ServerList;
 
 
 private:
 	virtual bool Initialize() override;
+
+	void UpdateChildren();
 
 	UFUNCTION()
 	void HostServer();
